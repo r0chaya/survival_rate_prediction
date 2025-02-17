@@ -46,7 +46,7 @@ total_seed = st.sidebar.number_input("Total Seed", min_value=1, value=50000)
 area = st.sidebar.number_input("Pond Area (m²)", min_value=1.0, value=500.0)
 target_cultivation_day = st.sidebar.number_input("Target Cultivation Day", min_value=1, value=90)
 
-if st.sidebar.button("Predict Survival Rate"):
+if st.sidebar.button("Predict Survival Rate", help="Click this button to predict", icon=":material/calculate:"):
     features = np.array([[total_seed, area, target_cultivation_day]])
     prediction = model.predict(features)
     st.write(f"Predicted Survival Rate: {prediction[0]:.2f}")
