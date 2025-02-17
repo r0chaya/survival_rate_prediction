@@ -41,7 +41,7 @@ with open("model.pkl", "wb") as file:
 # 5. Streamlit App
 st.title("Shrimp Survival Rate Prediction")
 
-st.sidebar.header("Input Features")
+st.sidebar.header("Input Features", divider=True)
 total_seed = st.sidebar.number_input("Total Seed", min_value=1, value=50000)
 area = st.sidebar.number_input("Pond Area (m²)", min_value=1.0, value=500.0)
 target_cultivation_day = st.sidebar.number_input("Target Cultivation Day", min_value=1, value=90)
