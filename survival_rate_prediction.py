@@ -22,7 +22,7 @@ sr_df['survival_rate'] = sr_df['total_harvested'] / sr_df['total_seed']
 sr_df.dropna(inplace=True)
 
 # 3. Model Training
-X = sr_df['total_seed', 'area', 'target_cultivation_day']
+X = sr_df[['total_seed', 'area', 'target_cultivation_day']]
 y = sr_df['survival_rate']
 
 # Balancing data dengan RandomUnderSampler
