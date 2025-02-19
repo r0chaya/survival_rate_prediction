@@ -8,11 +8,11 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 
 
-# 1. Load Dataset
+# Load Dataset
 cycles_df = pd.read_csv("cycles.csv")
 harvests_df = pd.read_csv("harvests.csv")
 
-# 2. Data Cleaning & Preprocessing
+# Data Cleaning & Preprocessing
 harvests_df['total_harvested'] = harvests_df['size'] * harvests_df['weight']
 harvest_summary = harvests_df.groupby('cycle_id')['total_harvested'].sum().reset_index()
 cycles_df = cycles_df.rename(columns={'id': 'cycle_id'})
@@ -20,7 +20,7 @@ sr_df = cycles_df[['cycle_id', 'total_seed', 'area', 'target_cultivation_day']].
 sr_df['survival_rate'] = sr_df['total_harvested'] / sr_df['total_seed']
 sr_df.dropna(inplace=True)
 
-# 3. Model Training
+# Model Training
 X = sr_df[['total_seed', 'area', 'target_cultivation_day']]
 y = sr_df['survival_rate']
 
@@ -65,12 +65,12 @@ model.fit(X_train_cleaned, y_train_cleaned)
 # Evaluasi model
 y_pred_valid = model.predict(X_valid)
 y_pred_test = model.predict(X_test)
-data = {'MAE' : [mean_absolute_error(y_valid, y_pred_valid),
-                 mean_absolute_error(y_test, y_pred_test)],
-        'MSE': [mean_squared_error(y_valid, y_pred_valid),
-                mean_squared_error(y_test, y_pred_test)],
-        'R-squared': [r2_score(y_valid, y_pred_valid), r2_score(y_test, y_pred_test)]}
-df = pd.DataFrame(data, index=['validation Performance','Test Performance'])
+# data = {'MAE' : [mean_absolute_error(y_valid, y_pred_valid),
+#                  mean_absolute_error(y_test, y_pred_test)],
+#         'MSE': [mean_squared_error(y_valid, y_pred_valid),
+#                 mean_squared_error(y_test, y_pred_test)],
+#         'R-squared': [r2_score(y_valid, y_pred_valid), r2_score(y_test, y_pred_test)]}
+# df = pd.DataFrame(data, index=['validation Performance','Test Performance'])
 
 print("Validation Performance:")
 print("MAE:", mean_absolute_error(y_valid, y_pred_valid))
@@ -90,11 +90,11 @@ print("R-squared:", r2_score(y_test, y_pred_test))
 # plt.title("Actual vs Predicted Survival Rate")
 # plt.show()
 
-# 4. Save Model
+# Save Model
 with open("model.pkl", "wb") as file:
     pickle.dump(model, file)
 
-# 5. Streamlit App
+# Streamlit App
 st.title("Shrimp Survival Rate Prediction")
 
 st.sidebar.header("Input Features", divider=True)
@@ -106,4 +106,4 @@ if st.sidebar.button("Predict Survival Rate", help="Click this button to predict
     features = np.array([[total_seed, area, target_cultivation_day]])
     prediction = model.predict(features)
     st.write(f"Predicted Survival Rate: {prediction[0]:.2f}")
-    st.table(df)
+    #st.table(df)
