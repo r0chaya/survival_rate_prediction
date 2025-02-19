@@ -35,17 +35,18 @@ X_valid, X_test, y_valid, y_test = train_test_split(X_test, y_test, test_size=0.
 # Fungsi untuk menghapus outlier menggunakan IQR
 def remove_outliers(data, target_col):
     data_clean = data.copy()
-    num_cols = data_clean.select_dtypes(include=['number']).columns.tolist()
+    # num_cols = data_clean.select_dtypes(include=['number']).columns.tolist()
 
-    for col in num_cols:
-        if col != target_col:
-            Q1 = data_clean[col].quantile(0.25)
-            Q3 = data_clean[col].quantile(0.75)
-            IQR = Q3 - Q1
-            data_clean = data_clean[
-                (data_clean[col] >= (Q1 - 1.5 * IQR)) &
-                (data_clean[col] <= (Q3 + 1.5 * IQR))
-            ]
+    # for col in num_cols:
+    #     if col != target_col:
+    #         Q1 = data_clean[col].quantile(0.25)
+    #         Q3 = data_clean[col].quantile(0.75)
+    #         IQR = Q3 - Q1
+    #         data_clean = data_clean[
+    #             (data_clean[col] >= (Q1 - 1.5 * IQR)) &
+    #             (data_clean[col] <= (Q3 + 1.5 * IQR))
+    #         ]
+    data_clean[target_col]=data_clean[target_col].clip(0,1)
 
     return data_clean
 
