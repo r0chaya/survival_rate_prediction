@@ -1,19 +1,13 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Feb 17 21:19:15 2025
-
-@author: Lenovo
-"""
-
 import pandas as pd
 import numpy as np
-#import seaborn as sns
-#import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
-#from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import pickle
 import streamlit as st
+from imblearn.under_sampling import RandomUnderSampler
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+
+
 
 # 1. Load Dataset
 cycles_df = pd.read_csv("cycles.csv")
@@ -25,14 +19,70 @@ harvest_summary = harvests_df.groupby('cycle_id')['total_harvested'].sum().reset
 cycles_df = cycles_df.rename(columns={'id': 'cycle_id'})
 sr_df = cycles_df[['cycle_id', 'total_seed', 'area', 'target_cultivation_day']].merge(harvest_summary, on='cycle_id', how='left')
 sr_df['survival_rate'] = sr_df['total_harvested'] / sr_df['total_seed']
-sr_df.fillna(0, inplace=True)
+sr_df.dropna(0, inplace=True)
 
 # 3. Model Training
 X = sr_df[['total_seed', 'area', 'target_cultivation_day']]
 y = sr_df['survival_rate']
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Balancing data dengan RandomUnderSampler
+rus = RandomUnderSampler(random_state=42)
+X_resampled, y_resampled = rus.fit_resample(X, y)
+
+# Pembagian dataset: train, validasi, test
+X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.3, random_state=42)
+X_valid, X_test, y_valid, y_test = train_test_split(X_test, y_test, test_size=0.5, random_state=42)
+
+# Fungsi untuk menghapus outlier menggunakan IQR
+def remove_outliers(data, target_col):
+    data_clean = data.copy()
+    num_cols = data_clean.select_dtypes(include=['number']).columns.tolist()
+
+    for col in num_cols:
+        if col != target_col:
+            Q1 = data_clean[col].quantile(0.25)
+            Q3 = data_clean[col].quantile(0.75)
+            IQR = Q3 - Q1
+            data_clean = data_clean[
+                (data_clean[col] >= (Q1 - 1.5 * IQR)) &
+                (data_clean[col] <= (Q3 + 1.5 * IQR))
+            ]
+
+    return data_clean
+
+# Gabungkan kembali fitur dan target untuk membersihkan outlier
+train_data = pd.concat([X_train, y_train], axis=1)
+train_data_cleaned = remove_outliers(train_data, 'survival_rate' )
+
+# Pisahkan kembali fitur dan target setelah pembersihan outlier
+X_train_cleaned = train_data_cleaned[['total_seed', 'area', 'target_cultivation_day']]
+y_train_cleaned = train_data_cleaned['survival_rate']
+
+
 model = RandomForestRegressor(n_estimators=100, random_state=42)
-model.fit(X_train, y_train)
+model.fit(X_train_cleaned, y_train_cleaned)
+
+# Evaluasi model
+y_pred_valid = model.predict(X_valid)
+y_pred_test = model.predict(X_test)
+
+print("Validation Performance:")
+print("MAE:", mean_absolute_error(y_valid, y_pred_valid))
+print("MSE:", mean_squared_error(y_valid, y_pred_valid))
+print("R-squared:", r2_score(y_valid, y_pred_valid))
+
+print("\nTest Performance:")
+print("MAE:", mean_absolute_error(y_test, y_pred_test))
+print("MSE:", mean_squared_error(y_test, y_pred_test))
+print("R-squared:", r2_score(y_test, y_pred_test))
+
+# Visualisasi hasil prediksi vs aktual
+#plt.figure(figsize=(8, 6))
+# sns.scatterplot(x=y_test, y=y_pred_test, alpha=0.7)
+# plt.xlabel("Actual Survival Rate")
+# plt.ylabel("Predicted Survival Rate")
+# plt.title("Actual vs Predicted Survival Rate")
+# plt.show()
 
 # 4. Save Model
 with open("model.pkl", "wb") as file:
