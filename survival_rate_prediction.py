@@ -26,11 +26,11 @@ X = sr_df[['total_seed', 'area', 'target_cultivation_day']]
 y = sr_df['survival_rate']
 
 # Balancing data dengan RandomUnderSampler
-rus = RandomUnderSampler(random_state=42)
-X_resampled, y_resampled = rus.fit_resample(X, y)
+# rus = RandomUnderSampler(random_state=42)
+# X_resampled, y_resampled = rus.fit_resample(X, y)
 
 # Pembagian dataset: train, validasi, test
-X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.3, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 X_valid, X_test, y_valid, y_test = train_test_split(X_test, y_test, test_size=0.5, random_state=42)
 
 # Fungsi untuk menghapus outlier menggunakan IQR
